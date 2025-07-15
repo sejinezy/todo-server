@@ -2,6 +2,8 @@ package org.example.service;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.constants.TaskStatus;
@@ -17,7 +19,13 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
 
-    //  title, description, dueDate를 받아서 데이터베이스에 저장
+    /**
+     * 데이터베이스에 저장
+     * @param title
+     * @param description
+     * @param dueDate
+     * @return
+     */
     public Task add(String title, String description, LocalDate dueDate) {
 
         var e = TaskEntity.builder()
@@ -27,9 +35,39 @@ public class TaskService {
                 .status(TaskStatus.TODO)
                 .build();
 
-        TaskEntity saved = this.taskRepository.save(e); // 데이터 베이스 저장
-        return entityToObject(saved); // 저장된 결과는  Task 인스턴스로 반환
+        TaskEntity saved = this.taskRepository.save(e);
+        return entityToObject(saved);
 
+    }
+
+    public List<Task> getAll() {
+        return this.taskRepository.findAll().stream()
+                .map(this::entityToObject)
+                .collect(Collectors.toList());
+    }
+
+    public List<Task> getByDueDate(String dueDate) {
+        return this.taskRepository.findAllByDueDate(Date.valueOf(dueDate)).stream()
+                .map(this::entityToObject)
+                .collect(Collectors.toList());
+    }
+
+    public List<Task> getByStatus(TaskStatus status) {
+        return this.taskRepository.findAllByStatus(status).stream()
+                .map(this::entityToObject)
+                .collect(Collectors.toList());
+
+    }
+
+    public Task getOne(Long id) {
+        TaskEntity entity = getById(id);
+        return entityToObject(entity);
+    }
+
+    private TaskEntity getById(Long id) {
+        return this.taskRepository.findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(String.format("not exists task id [%id]", id)));
     }
 
     private Task entityToObject(TaskEntity e) {
@@ -43,4 +81,6 @@ public class TaskService {
                 .updatedAt(e.getUpdatedAt().toLocalDateTime())
                 .build();
     }
+
+
 }
