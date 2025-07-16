@@ -6,13 +6,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.constants.TaskStatus;
 import org.example.model.Task;
-import org.example.model.TaskRequest;
+import org.example.web.vo.ResultResponse;
+import org.example.web.vo.TaskRequest;
 import org.example.service.TaskService;
+import org.example.web.vo.TaskStatusRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -38,6 +43,7 @@ public class TaskController {
 
     /**
      * 특정 마감일에 해당하는 할일 목록 반환
+     *
      * @param dueDate 할일의 마감일
      * @return 마감일에 해당하는 할일 목록
      */
@@ -57,6 +63,7 @@ public class TaskController {
 
     /**
      * 특정 ID에 해당하는 할일을 조회
+     *
      * @param id 할일 ID
      * @return ID에 해당하는 할일 객체
      */
@@ -69,6 +76,7 @@ public class TaskController {
 
     /**
      * 특정 상태에 해당하는 할일 목록을 반환
+     *
      * @param status 할일 상태
      * @return 상태에 해당하는 할일 목록
      */
@@ -79,4 +87,57 @@ public class TaskController {
 
     }
 
+    /**
+     * 특정 ID에 해당하는 할일을 수정
+     *
+     * @param id   할일 ID
+     * @param task 수정할 할일 정보
+     * @return 수정된 할일 객체
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<Task> updateTask(@PathVariable Long id,
+                                           @RequestBody TaskRequest task) {
+        Task result = taskService.update(id,
+                task.getTitle(),
+                task.getDescription(),
+                task.getDueDate()
+        );
+
+        return ResponseEntity.ok(result);
+    }
+
+
+    /**
+     * 특정 ID에 해당하는 할일의 상태를 수정
+     *
+     * @param id      할일 ID
+     * @param request 수정할 할일 상태 정보
+     * @return 수정된 할일 객체
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Task> updateTaskStatus(@PathVariable Long id,
+                                                 @RequestBody TaskStatusRequest request) {
+
+        Task result = taskService.updateStatus(id, request.getStatus());
+        return ResponseEntity.ok(result);
+    }
+
+
+    /**
+     * 특정 ID에 해당하는 할일을 삭제
+     *
+     * @param id 삭제할 할일 ID
+     * @return 삭제 결과를 담은 응답 객체
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResultResponse> deleteTask(@PathVariable Long id) {
+        boolean result = taskService.delete(id);
+        return ResponseEntity.ok(new ResultResponse(result));
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<TaskStatus[]> getAllStatus() {
+        TaskStatus[] statuses = TaskStatus.values();
+        return ResponseEntity.ok(statuses);
+    }
 }

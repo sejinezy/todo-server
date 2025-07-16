@@ -3,9 +3,11 @@ package org.example.service;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.example.constants.TaskStatus;
 import org.example.model.Task;
 import org.example.persist.TaskRepository;
@@ -62,6 +64,41 @@ public class TaskService {
     public Task getOne(Long id) {
         TaskEntity entity = getById(id);
         return entityToObject(entity);
+    }
+
+    public Task update(Long id, String title, String description, LocalDate dueDate) {
+        TaskEntity exists = getById(id);
+
+        exists.setTitle(Strings.isEmpty(title) ?
+                exists.getTitle() : title);
+
+        exists.setDescription(Strings.isEmpty(description) ?
+                exists.getDescription() : description);
+
+        exists.setDueDate(Objects.isNull(dueDate) ?
+                exists.getDueDate() : Date.valueOf(dueDate));
+
+        TaskEntity updated = taskRepository.save(exists);
+        return this.entityToObject(updated);
+    }
+
+    public Task updateStatus(Long id, TaskStatus status) {
+        TaskEntity entity = getById(id);
+
+        entity.setStatus(status);
+
+        TaskEntity saved = taskRepository.save(entity);
+        return entityToObject(saved);
+    }
+
+    public boolean delete(Long id) {
+        try {
+            taskRepository.deleteById(id);
+        } catch (Exception e) {
+            log.error("an error occurred while deleting [{}]", e.toString());
+            return false;
+        }
+        return true;
     }
 
     private TaskEntity getById(Long id) {

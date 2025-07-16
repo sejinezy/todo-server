@@ -1,4 +1,4 @@
-package org.example.model;
+package org.example.web.vo;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
